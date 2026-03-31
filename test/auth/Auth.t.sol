@@ -15,10 +15,7 @@ contract AuthTest is Test {
     address newOwner = address(0xC);
 
     event OwnershipTransferred(address indexed user, address indexed newOwner);
-    event AuthorityUpdated(
-        address indexed user,
-        Authority indexed newAuthority
-    );
+    event AuthorityUpdated(address indexed user, Authority indexed newAuthority);
 
     function setUp() public {
         authority = new MockAuthority();
@@ -58,12 +55,7 @@ contract AuthTest is Test {
     }
 
     function testAuthorizedUserCanCallProtected() public {
-        authority.setCanCall(
-            user,
-            address(authed),
-            MockAuth.protectedFunction.selector,
-            true
-        );
+        authority.setCanCall(user, address(authed), MockAuth.protectedFunction.selector, true);
 
         vm.prank(user);
         assertTrue(authed.protectedFunction());
@@ -94,12 +86,7 @@ contract AuthTest is Test {
     }
 
     function testAuthorizedUserCanTransferOwnership() public {
-        authority.setCanCall(
-            user,
-            address(authed),
-            authed.transferOwnership.selector,
-            true
-        );
+        authority.setCanCall(user, address(authed), authed.transferOwnership.selector, true);
 
         vm.prank(user);
         authed.transferOwnership(newOwner);
@@ -124,12 +111,7 @@ contract AuthTest is Test {
         authed.transferOwnership(newOwner);
 
         // 清除旧 owner 在 authority 中的权限
-        authority.setCanCall(
-            owner,
-            address(authed),
-            authed.protectedFunction.selector,
-            false
-        );
+        authority.setCanCall(owner, address(authed), authed.protectedFunction.selector, false);
 
         vm.prank(owner);
         vm.expectRevert("UNAUTHORIZED");
@@ -152,12 +134,7 @@ contract AuthTest is Test {
     }
 
     function testAuthorizedUserCanSetAuthority() public {
-        authority.setCanCall(
-            user,
-            address(authed),
-            authed.setAuthority.selector,
-            true
-        );
+        authority.setCanCall(user, address(authed), authed.setAuthority.selector, true);
 
         MockAuthority newAuthority = new MockAuthority();
 
