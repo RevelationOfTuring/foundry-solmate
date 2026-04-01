@@ -32,14 +32,17 @@ contract AuthTest is Test {
                             CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
+    // 验证构造函数正确设置 owner
     function testConstructorSetsOwner() public view {
         assertEq(authed.owner(), owner);
     }
 
+    // 验证构造函数正确设置 authority
     function testConstructorSetsAuthority() public view {
         assertEq(address(authed.authority()), address(authority));
     }
 
+    // 验证构造函数可以传入零地址作为 authority
     function testConstructorWithZeroAuthority() public {
         MockAuth noAuth = new MockAuth(owner, Authority(address(0)));
         assertEq(address(noAuth.authority()), address(0));
@@ -49,11 +52,13 @@ contract AuthTest is Test {
                           REQUIRES AUTH
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：owner 可以调用受保护函数
     function testOwnerCanCallProtected() public {
         vm.prank(owner);
         assertTrue(authed.protectedFunction());
     }
 
+    // 正向：被 Authority 授权的用户可以调用受保护函数
     function testAuthorizedUserCanCallProtected() public {
         authority.setCanCall(user, address(authed), MockAuth.protectedFunction.selector, true);
 
@@ -61,12 +66,14 @@ contract AuthTest is Test {
         assertTrue(authed.protectedFunction());
     }
 
+    // 反向：未授权用户调用受保护函数
     function testUnauthorizedUserCannotCallProtected() public {
         vm.prank(user);
         vm.expectRevert("UNAUTHORIZED");
         authed.protectedFunction();
     }
 
+    // 正向：任何人都可以调用不受保护的函数
     function testAnyoneCanCallUnprotected() public {
         vm.prank(user);
         assertTrue(authed.unprotectedFunction());
@@ -76,6 +83,7 @@ contract AuthTest is Test {
                          TRANSFER OWNERSHIP
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：owner 可以转移所有权，验证事件和状态
     function testOwnerCanTransferOwnership() public {
         vm.prank(owner);
         vm.expectEmit(true, true, false, false);
@@ -85,6 +93,7 @@ contract AuthTest is Test {
         assertEq(authed.owner(), newOwner);
     }
 
+    // 正向：被 Authority 授权的用户也可以转移所有权
     function testAuthorizedUserCanTransferOwnership() public {
         authority.setCanCall(user, address(authed), authed.transferOwnership.selector, true);
 
@@ -94,18 +103,21 @@ contract AuthTest is Test {
         assertEq(authed.owner(), newOwner);
     }
 
+    // 反向：未授权用户不能转移所有权
     function testUnauthorizedUserCannotTransferOwnership() public {
         vm.prank(user);
         vm.expectRevert("UNAUTHORIZED");
         authed.transferOwnership(newOwner);
     }
 
+    // 边界：可以将所有权转移给零地址（放弃所有权）
     function testTransferOwnershipToZeroAddress() public {
         vm.prank(owner);
         authed.transferOwnership(address(0));
         assertEq(authed.owner(), address(0));
     }
 
+    // 正向：转移所有权后旧 owner 失去权限
     function testOldOwnerLosesAccessAfterTransfer() public {
         vm.prank(owner);
         authed.transferOwnership(newOwner);
@@ -122,6 +134,7 @@ contract AuthTest is Test {
                           SET AUTHORITY
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：owner 可以更换 Authority，验证事件和状态
     function testOwnerCanSetAuthority() public {
         MockAuthority newAuthority = new MockAuthority();
 
@@ -133,6 +146,7 @@ contract AuthTest is Test {
         assertEq(address(authed.authority()), address(newAuthority));
     }
 
+    // 正向：被 Authority 授权的用户也可以更换 Authority
     function testAuthorizedUserCanSetAuthority() public {
         authority.setCanCall(user, address(authed), authed.setAuthority.selector, true);
 
@@ -144,12 +158,14 @@ contract AuthTest is Test {
         assertEq(address(authed.authority()), address(newAuthority));
     }
 
+    // 反向：未授权用户不能更换 Authority
     function testUnauthorizedUserCannotSetAuthority() public {
         vm.prank(user);
         vm.expectRevert();
         authed.setAuthority(Authority(address(0)));
     }
 
+    // 边界：可以将 Authority 设为零地址（禁用外部授权）
     function testSetAuthorityToZero() public {
         vm.prank(owner);
         authed.setAuthority(Authority(address(0)));
@@ -161,6 +177,7 @@ contract AuthTest is Test {
                       REVERTING AUTHORITY
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：Authority revert 时 owner 仍可更换 Authority（setAuthority 先判断 owner）
     function testOwnerCanSetAuthorityWhenAuthorityReverts() public {
         vm.prank(owner);
         authed.setAuthority(bad);
@@ -173,6 +190,7 @@ contract AuthTest is Test {
         assertEq(address(authed.authority()), address(good));
     }
 
+    // 反向：Authority revert 导致 isAuthorized 整体 revert，即使是 owner 也被阻断
     function testOwnerCannotCallProtectedWhenAuthorityReverts() public {
         vm.prank(owner);
         authed.setAuthority(bad);
@@ -187,6 +205,7 @@ contract AuthTest is Test {
                       NO AUTHORITY (address(0))
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：无 Authority 时只有 owner 可以调用受保护函数，其他人 revert
     function testOnlyOwnerWorksWithoutAuthority() public {
         MockAuth noAuth = new MockAuth(owner, Authority(address(0)));
 

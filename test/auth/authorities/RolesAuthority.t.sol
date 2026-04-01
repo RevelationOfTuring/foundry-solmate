@@ -44,10 +44,12 @@ contract RolesAuthorityTest is Test {
                             CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
+    // 验证构造函数正确设置 owner
     function testConstructorSetsOwner() public view {
         assertEq(authority.owner(), owner);
     }
 
+    // 验证构造函数正确设置 authority 为零地址
     function testConstructorSetsAuthority() public view {
         assertEq(address(authority.authority()), address(0));
     }
@@ -56,6 +58,7 @@ contract RolesAuthorityTest is Test {
                            SET USER ROLE
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：owner 给用户分配角色，验证事件和状态
     function testSetUserRole() public {
         vm.prank(owner);
         vm.expectEmit(true, true, false, true);
@@ -65,6 +68,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.doesUserHaveRole(alice, ROLE_0));
     }
 
+    // 正向：给同一用户分配多个角色，互不干扰
     function testSetMultipleRoles() public {
         vm.startPrank(owner);
         authority.setUserRole(alice, ROLE_0, true);
@@ -77,6 +81,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.doesUserHaveRole(alice, ROLE_2));
     }
 
+    // 正向：撤销一个角色，其他角色不受影响
     function testRevokeUserRole() public {
         vm.startPrank(owner);
         authority.setUserRole(alice, ROLE_0, true);
@@ -92,6 +97,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.doesUserHaveRole(alice, ROLE_1));
     }
 
+    // 边界：分配 role 255（最大值）
     function testSetUserRoleBoundary255() public {
         vm.prank(owner);
         authority.setUserRole(alice, ROLE_255, true);
@@ -100,6 +106,7 @@ contract RolesAuthorityTest is Test {
         assertFalse(authority.doesUserHaveRole(alice, ROLE_0));
     }
 
+    // 反向：非 owner 不能分配角色
     function testNonOwnerCannotSetUserRole() public {
         vm.prank(alice);
         vm.expectRevert("UNAUTHORIZED");
@@ -110,10 +117,12 @@ contract RolesAuthorityTest is Test {
                        DOES USER HAVE ROLE
     //////////////////////////////////////////////////////////////*/
 
+    // 默认状态下用户没有任何角色
     function testDoesUserHaveRoleReturnsFalseByDefault() public view {
         assertFalse(authority.doesUserHaveRole(alice, ROLE_0));
     }
 
+    // 分配角色后只有对应角色返回 true
     function testDoesUserHaveRoleAfterGrant() public {
         vm.prank(owner);
         authority.setUserRole(alice, ROLE_2, true);
@@ -127,6 +136,7 @@ contract RolesAuthorityTest is Test {
                        SET ROLE CAPABILITY
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：设置角色能力，验证事件和状态
     function testSetRoleCapability() public {
         vm.prank(owner);
         vm.expectEmit(true, true, true, true);
@@ -136,6 +146,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.doesRoleHaveCapability(ROLE_0, address(target), protectedSig));
     }
 
+    // 正向：多个角色拥有同一函数能力
     function testSetMultipleRoleCapabilities() public {
         vm.startPrank(owner);
         authority.setRoleCapability(ROLE_0, address(target), protectedSig, true);
@@ -146,6 +157,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.doesRoleHaveCapability(ROLE_1, address(target), protectedSig));
     }
 
+    // 正向：撤销一个角色的能力，其他角色不受影响
     function testRevokeRoleCapability() public {
         vm.startPrank(owner);
         authority.setRoleCapability(ROLE_0, address(target), protectedSig, true);
@@ -159,6 +171,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.doesRoleHaveCapability(ROLE_1, address(target), protectedSig));
     }
 
+    // 边界：role 255 的能力设置
     function testSetRoleCapabilityBoundary255() public {
         vm.prank(owner);
         authority.setRoleCapability(ROLE_255, address(target), protectedSig, true);
@@ -167,6 +180,7 @@ contract RolesAuthorityTest is Test {
         assertFalse(authority.doesRoleHaveCapability(ROLE_0, address(target), protectedSig));
     }
 
+    // 反向：非 owner 不能设置角色能力
     function testNonOwnerCannotSetRoleCapability() public {
         vm.prank(alice);
         vm.expectRevert("UNAUTHORIZED");
@@ -177,6 +191,7 @@ contract RolesAuthorityTest is Test {
                     DOES ROLE HAVE CAPABILITY
     //////////////////////////////////////////////////////////////*/
 
+    // 默认状态下角色没有任何能力
     function testDoesRoleHaveCapabilityReturnsFalseByDefault() public view {
         assertFalse(authority.doesRoleHaveCapability(ROLE_0, address(target), protectedSig));
     }
@@ -185,6 +200,7 @@ contract RolesAuthorityTest is Test {
                       SET PUBLIC CAPABILITY
     //////////////////////////////////////////////////////////////*/
 
+    // 正向：设置公开能力，验证事件和状态
     function testSetPublicCapability() public {
         vm.prank(owner);
         vm.expectEmit(true, true, false, true);
@@ -194,6 +210,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.isCapabilityPublic(address(target), protectedSig));
     }
 
+    // 正向：撤销公开能力
     function testRevokePublicCapability() public {
         vm.startPrank(owner);
         authority.setPublicCapability(address(target), protectedSig, true);
@@ -203,6 +220,7 @@ contract RolesAuthorityTest is Test {
         assertFalse(authority.isCapabilityPublic(address(target), protectedSig));
     }
 
+    // 反向：非 owner 不能设置公开能力
     function testNonOwnerCannotSetPublicCapability() public {
         vm.prank(alice);
         vm.expectRevert("UNAUTHORIZED");
@@ -213,10 +231,12 @@ contract RolesAuthorityTest is Test {
                             CAN CALL
     //////////////////////////////////////////////////////////////*/
 
+    // 默认状态下 canCall 返回 false
     function testCanCallReturnsFalseByDefault() public view {
         assertFalse(authority.canCall(alice, address(target), protectedSig));
     }
 
+    // 用户拥有对应角色 + 角色拥有该函数能力 → 通过
     function testCanCallWithRole() public {
         vm.startPrank(owner);
         authority.setRoleCapability(ROLE_0, address(target), protectedSig, true);
@@ -226,6 +246,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.canCall(alice, address(target), protectedSig));
     }
 
+    // 函数被设为公开 → 任何人通过
     function testCanCallWithPublicCapability() public {
         vm.prank(owner);
         authority.setPublicCapability(address(target), protectedSig, true);
@@ -236,6 +257,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.canCall(owner, address(target), protectedSig));
     }
 
+    // 角色不匹配 → 不通过
     function testCanCallFailsWithWrongRole() public {
         vm.startPrank(owner);
         // 函数需要 ROLE_1，但 alice 只有 ROLE_0
@@ -246,6 +268,7 @@ contract RolesAuthorityTest is Test {
         assertFalse(authority.canCall(alice, address(target), protectedSig));
     }
 
+    // 函数不匹配 → 不通过
     function testCanCallFailsWithWrongFunction() public {
         vm.startPrank(owner);
         // alice 有 ROLE_0，ROLE_0 可调用 protectedSig，但不能调用 anotherSig
@@ -257,6 +280,7 @@ contract RolesAuthorityTest is Test {
         assertFalse(authority.canCall(alice, address(target), anotherSig));
     }
 
+    // 多个角色重叠匹配 → 通过
     function testCanCallWithMultipleOverlappingRoles() public {
         vm.startPrank(owner);
         // 函数允许 ROLE_1 和 ROLE_2
@@ -270,6 +294,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.canCall(alice, address(target), protectedSig));
     }
 
+    // 撤销角色后权限消失
     function testCanCallAfterRoleRevoked() public {
         vm.startPrank(owner);
         authority.setRoleCapability(ROLE_0, address(target), protectedSig, true);
@@ -285,6 +310,7 @@ contract RolesAuthorityTest is Test {
         assertFalse(authority.canCall(alice, address(target), protectedSig));
     }
 
+    // 撤销角色能力后，即使用户有角色也无法调用
     function testCanCallAfterCapabilityRevoked() public {
         vm.startPrank(owner);
         authority.setRoleCapability(ROLE_0, address(target), protectedSig, true);
@@ -304,6 +330,7 @@ contract RolesAuthorityTest is Test {
                       END-TO-END INTEGRATION
     //////////////////////////////////////////////////////////////*/
 
+    // 端到端：有角色权限的用户成功调用受保护函数
     function testEndToEndAuthorizedCall() public {
         vm.startPrank(owner);
         authority.setRoleCapability(ROLE_0, address(target), protectedSig, true);
@@ -315,6 +342,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(target.protectedFunc());
     }
 
+    // 端到端：无角色权限的用户调用受保护函数 → revert
     function testEndToEndUnauthorizedCall() public {
         // bob 没有任何角色，调用受保护函数应 revert
         vm.prank(bob);
@@ -322,6 +350,7 @@ contract RolesAuthorityTest is Test {
         target.protectedFunc();
     }
 
+    // 端到端：公开函数任何人可调用
     function testEndToEndPublicCapability() public {
         vm.prank(owner);
         authority.setPublicCapability(address(target), protectedSig, true);
@@ -331,12 +360,14 @@ contract RolesAuthorityTest is Test {
         assertTrue(target.protectedFunc());
     }
 
+    // 端到端：owner 不需要角色也能调用（Auth.isAuthorized 兜底）
     function testEndToEndOwnerAlwaysPasses() public {
         // owner 不需要任何角色也能调用（Auth.isAuthorized 兜底）
         vm.prank(owner);
         assertTrue(target.protectedFunc());
     }
 
+    // 端到端：完整的授权 → 撤销流程
     function testEndToEndRevokeFlowComplete() public {
         // 1. 配置权限
         vm.startPrank(owner);
@@ -358,6 +389,7 @@ contract RolesAuthorityTest is Test {
         target.protectedFunc();
     }
 
+    // 端到端：不同 target 的权限互相隔离
     function testEndToEndMultipleTargets() public {
         // 部署第二个目标合约
         Target target2 = new Target(owner, authority);
@@ -393,6 +425,7 @@ contract RolesAuthorityTest is Test {
                      AUTHORITY MANAGES ITSELF
     //////////////////////////////////////////////////////////////*/
 
+    // 自治模式：通过角色权限让非 owner 也能管理角色
     function testAuthorizedUserCanManageRoles() public {
         vm.startPrank(owner);
         // 关键：让 authority 以自身作为 authority（自治模式）
@@ -411,6 +444,7 @@ contract RolesAuthorityTest is Test {
         assertTrue(authority.doesUserHaveRole(bob, ROLE_1));
     }
 
+    // 转移所有权后新 owner 可管理，旧 owner 不能
     function testTransferOwnership() public {
         vm.prank(owner);
         authority.transferOwnership(alice);

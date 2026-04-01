@@ -79,3 +79,9 @@ EVM: 0x93E75664A29040fC14281FdFa8821e7900000000
 ```
 
 Accepts any EVM-compatible chain — Ethereum, Arbitrum, Optimism, Base, BSC, Polygon, etc.
+
+## Contact
+
+For questions, discussions, or consulting on smart contract development, feel free to reach out:
+
+📧 **wgy.michael@gmail.com**
