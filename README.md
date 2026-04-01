@@ -1,66 +1,81 @@
-## Foundry
+# Foundry-Solmate
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Line-by-line source analysis of [solmate](https://github.com/transmissions11/solmate) with annotated contracts, mock helpers, and comprehensive Foundry test coverage.
 
-Foundry consists of:
+## Overview
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+This project provides a systematic deep-dive into solmate's core modules (pinned at commit [89365b8](https://github.com/transmissions11/solmate/commit/89365b8)), combining source-level annotations with rigorous test validation.
 
-## Documentation
+Annotated fork with inline Chinese comments: [RevelationOfTuring/solmate (code-reading branch)](https://github.com/RevelationOfTuring/solmate/tree/code-reading)
 
-https://book.getfoundry.sh/
+**Goals**:
+- **Annotated source code** — line-by-line Chinese comments covering design rationale, gas optimizations, and security considerations
+- **Full Foundry test coverage** — happy paths, revert paths, boundary conditions, and end-to-end integration tests for every public function
 
-## Usage
+## Project Structure
+
+```
+foundry-solmate/
+├── lib/
+│   ├── forge-std/           # Foundry standard library v1.15.0
+│   └── solmate/             # Solmate source (with inline annotations)
+├── src/                     # Mock contracts (expose internals for testing)
+│   └── auth/
+│       ├── MockAuth.sol
+│       └── MockOwned.sol
+├── test/                    # Foundry tests
+│   ├── auth/
+│   │   ├── Auth.t.sol
+│   │   ├── Owned.t.sol
+│   │   └── authorities/
+│   │       ├── RolesAuthority.t.sol
+│   │       └── MultiRolesAuthority.t.sol
+│   └── ...
+└── ...
+```
+
+## Getting Started
+
+### Prerequisites
+
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
 
 ### Build
 
-```shell
-$ forge build
+```bash
+forge build
 ```
 
 ### Test
 
-```shell
-$ forge test
+```bash
+# Run all tests
+forge test
+
+# Target a specific contract
+forge test --match-contract MultiRolesAuthorityTest -v
+
+# Target a specific test function
+forge test --match-test testCanCallWithCustomAuthority -vvv
 ```
 
-### Format
+## Dependencies
 
-```shell
-$ forge fmt
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| [solmate](https://github.com/transmissions11/solmate) | main @ [89365b8](https://github.com/transmissions11/solmate/commit/89365b8) | Target library under analysis |
+| [forge-std](https://github.com/foundry-rs/forge-std) | v1.15.0 | Foundry test framework |
+
+## License
+
+Test code in this repository is released under the MIT License. The original solmate source code is licensed under AGPL-3.0.
+
+## Donate
+
+If you find this project helpful, consider buying me a coffee ☕
+
+```
+EVM: 0x93E75664A29040fC14281FdFa8821e7900000000
 ```
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Accepts any EVM-compatible chain — Ethereum, Arbitrum, Optimism, Base, BSC, Polygon, etc.
