@@ -286,11 +286,7 @@ contract SSTORE2Test is Test {
     }
 
     // Fuzz：任意 [start, end) 范围切片读取
-    function testFuzzReadWithStartAndEnd(
-        bytes memory data,
-        uint256 start,
-        uint256 end
-    ) public {
+    function testFuzzReadWithStartAndEnd(bytes memory data, uint256 start, uint256 end) public {
         vm.assume(data.length > 0 && data.length <= 24575);
         vm.assume(start <= end && end <= data.length);
 
