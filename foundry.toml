@@ -3,5 +3,10 @@ src = "src"
 out = "out"
 libs = ["lib"]
 ffi = true
+solc = "0.8.25"
+
+[lint]
+# 测试文件中的 transfer/transferFrom 无需检查返回值
+exclude_lints = ["erc20-unchecked-transfer"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
